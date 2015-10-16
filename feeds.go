@@ -109,7 +109,7 @@ type ChangesFeed struct {
 	// After all items have been processed, set to the last_seq value sent
 	// by CouchDB. In CouchDB1.X, this is an int64. In CouchDB2, this is
 	// an opaque string.
-	Seq interface{} `json:"seq"` // [SK]
+	Seq interface{} `json:"seq"`
 
 	// Changes is the list of the document's leaf revisions.
 	Changes []struct {
@@ -202,19 +202,13 @@ func (f *ChangesFeed) contParser(r io.Reader) func() error {
 	dec := json.NewDecoder(r)
 	return func() error {
 
-		// [SK] The row struct wasn't capturing the change revision, only id, seq and deleted. Also not
-		//      working with include_docs=true
-		//
-		//      * Changed the type of the Seq field from int64 to interface{}, to work with Cloudant/CouchDB2
-		//      * Added Changes and Doc fields
-
 		var row struct {
 			ID      string      `json:"id"`
-			Seq     interface{} `json:"seq"` // [SK]
-			Changes []struct {  // [SK]
+			Seq     interface{} `json:"seq"`
+			Changes []struct {
 				Rev string `json:"rev"`
 			} `json:"changes"`
-			Doc     json.RawMessage `json:"doc"` // [SK]
+			Doc     json.RawMessage `json:"doc"`
 			Deleted bool            `json:"deleted"`
 			LastSeq bool            `json:"last_seq"`
 		}
@@ -224,7 +218,7 @@ func (f *ChangesFeed) contParser(r io.Reader) func() error {
 		}
 
 		f.ID, f.Seq, f.Deleted, f.Changes, f.Doc =
-			row.ID, row.Seq, row.Deleted, row.Changes, row.Doc // [SK]
+			row.ID, row.Seq, row.Deleted, row.Changes, row.Doc
 
 		if row.LastSeq {
 			f.end = true
